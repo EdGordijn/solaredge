@@ -106,7 +106,7 @@ ax.margins(0)
 ax.legend(loc='lower right', bbox_to_anchor=(1, 1))
 
 # Save figure
-fig.savefig(fname='correlatie_knmi.png', dpi=600)
+fig.savefig(fname='fig/correlatie_knmi.png', dpi=600)
 
 #%% Correlate stn 215 Voorschoten with stn 210 Valkenburg zh
 
@@ -166,7 +166,7 @@ ax.margins(0)
 ax.legend(loc='lower right', bbox_to_anchor=(1, 1))
 
 # Save figure
-fig.savefig(fname='meteo_stations.png', dpi=600)
+fig.savefig(fname='fig/meteo_stations.png', dpi=600)
 
 #%% Predict production per month
 start_date = datetime(2022, 1, 1)
@@ -218,7 +218,7 @@ ax.set_xticks(per_maand.index,
 ax.legend(loc='lower right', ncol=1, bbox_to_anchor=(1, 1))                      
 
 # Save figure
-fig.savefig(fname='prognose_vs_realisate.png', dpi=600)
+fig.savefig(fname='fig/prognose_vs_realisate.png', dpi=600)
 
 #%% Predict production based on previous radiation
 
@@ -275,7 +275,7 @@ ax.set_ylabel('opgewekt [kWh]')
 ax.set_xticks(ax.get_xticks(),
               labels=['januari', 'februari', 'maart', 'april', 'mei', 'juni', 'juli', 'augustus', 'september', 'oktober', 'november', 'december'])
 
-ax.figure.savefig('boxplot.png', dpi=600)
+ax.figure.savefig('fig/boxplot.png', dpi=600)
 
 # #%% Violin plot
 # fig, ax = plt.subplots()
@@ -331,7 +331,7 @@ ax.annotate(f'target {target:.0f} kWh',
             xytext=(5, 0), textcoords='offset points',
             va='center')
 
-ax.figure.savefig('historische_jaaropbrengst.png', dpi=600)
+ax.figure.savefig('fig/historische_jaaropbrengst.png', dpi=600)
 
 #%% Expected yearly distribution
 
@@ -400,4 +400,4 @@ stats_per_dag.plot(y='opgewekt',
 # legend
 ax.legend(loc='lower right', ncol=1, bbox_to_anchor=(1, 1))                      
 
-ax.figure.savefig('historische_jaarontwikkeling.png', dpi=600)
+ax.figure.savefig('fig/historische_jaarontwikkeling.png', dpi=600)

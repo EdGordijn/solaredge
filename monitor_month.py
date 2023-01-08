@@ -127,7 +127,7 @@ ax.grid(axis='x')
 ax.legend(loc='lower right', bbox_to_anchor=(1, 1))
 
 # Save figure
-fig.savefig(fname='monitor_month.png', dpi=600)
+fig.savefig(fname='fig/monitor_month.png', dpi=600)
 
 # Geschat jaarverbruik
 dagen = len(df3.index)

@@ -120,4 +120,4 @@ ax.yaxis.set_major_locator(ylocator)
 ax.legend(loc='lower right', bbox_to_anchor=(1, 1))
 
 #%% Save figure
-fig.savefig(fname='monitor_cum_year.png', dpi=600) 
+fig.savefig(fname='fig/monitor_cum_year.png', dpi=600) 

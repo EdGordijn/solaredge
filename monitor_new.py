@@ -220,4 +220,4 @@ ax2.set_xlim(today_start, today_end)
 ax2.legend(loc='lower right', bbox_to_anchor=(1, 1))
 
 #%% Save figure
-fig.savefig(fname='monitor_new.png', dpi=600) 
+fig.savefig(fname='fig/monitor_new.png', dpi=600) 
