@@ -1,0 +1,6 @@
+ssdtools/
+ssdtools
+
+__pycache__/
+
+*.png

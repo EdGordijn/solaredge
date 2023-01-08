@@ -1,0 +1,5 @@
+<html><head><meta http-equiv='X-UA-Compatible' content='IE=edge' /><base target='_self'/></head><body><form method='post' action='https://mijn.greenchoice.nl/signin-oidc'><input type='hidden' name='code' value='980DD2A4E8BA8D6F67C2973909D08AD8984D350F5996671453D30C27CA5AAF4A' />
+<input type='hidden' name='scope' value='openid profile email id' />
+<input type='hidden' name='state' value='CfDJ8GsQqfrTvh5NqZwvcsr8xgz6YK0aYLaCxJpo8nHpwykK5lkmsuky2U5tvXPs2wAEInAV270WD2JzdvWb1jqSa3FBfBeWXrvi4Vt16y4Yj5K9YBNJawbSxME0Ff2p6H9XUEZ5HZbU-jxrfJMGqVcyXBRo7fbVr3eegoa2khlCkdyhVe_F_JSbr8_4IZf2Bfujxukj8zgwENOj7kWPT1DUvxoShjiL_Gc7HWjbM1Rbldn49VOmdylNCyt4EGr25co7E_0MWmm9zNAdmkjqaG0rWG3MzAHadgwgkgLFWI-otraDJSyyORxVokVAymFVyLCigD3sPM0ktDm_Ve3S-ZThzpc1TRXWz-eAHAGvgvlFn5V9c5AnkVFje7QonmwcgVixwlgkhU7fgc4BC4VsVTdOve8' />
+<input type='hidden' name='session_state' value='0cJov-IYU-fsMzAT_DX_kKM7CRDW6VLtdmoRNyIJ-6s.D0541056EA493015581132CE30037B14' />
+<noscript><button>Click to continue</button></noscript></form><script>window.addEventListener('load', function(){document.forms[0].submit();});</script></body></html>
