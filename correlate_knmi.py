@@ -270,6 +270,15 @@ ax.bar(per_maand.index,
 
 straling_per_maand.groupby(level='maand').boxplot(subplots=False, ax=ax)
 
+# data labels
+means = straling_per_maand.groupby(level='maand')['Q'].median()
+for index, mean in enumerate(means):
+    ax.annotate(f'{mean:.0f}',
+                xy=(index+1, mean), 
+                xytext=(13, 0), textcoords='offset points',
+                va='center',
+                fontsize=6, color='green')
+
 # Set axis labels
 ax.set_ylabel('opgewekt [kWh]')
 ax.set_xticks(ax.get_xticks(),
