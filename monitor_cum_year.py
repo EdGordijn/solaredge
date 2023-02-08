@@ -144,16 +144,16 @@ fig.set_size_inches(10, 6)
    
 
 #%% Plot stats
-stats_per_dag.plot(y='mean',
-                   ax=ax)
-
 ax.fill_between(stats_per_dag.index,
                 stats_per_dag['ci95_lo'],
                 stats_per_dag['ci95_hi'],
-                color='b',
-                alpha=.1)
+                color='#B68CB8',
+                alpha=.15)
 
-
+stats_per_dag.plot(y='mean',
+                   color='#B68CB8',
+                   linewidth=0.8,
+                   ax=ax)
 
 #%% Periods
 today = datetime.now()
@@ -191,7 +191,6 @@ ax.plot('time',
         'value',
         data=df_energy,
         color='#6461A0',
-        # linewidth=0.8,
         label=f'{today.year} {energy_ytd:6.1f} kWh'.replace(' ', u'\u2007'))
 
 # Markerline for the target - proposal SolarEnergy
