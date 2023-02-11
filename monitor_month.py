@@ -1,4 +1,3 @@
-import pandas as pd
 import solaredge
 from datetime import datetime, time, timedelta
 from calendar import monthrange
@@ -13,12 +12,12 @@ from get_greenchoice_data import GreenchoiceApi
 api_key = '0JZ8Q9LPBWIQ4KJHV8XJ2D1STNQA3MHH'
 site_id = '2752001'
 
-today = datetime.now().date()
+today = datetime.now() #.date()
 start_date = today.replace(day=1)
 end_date = today
 
-start_date = datetime(2022, 3, 2) #.date()
-# end_date = datetime(2022, 6, 30) #.date()
+# start_date = datetime(2023, 1, 1)
+# end_date = datetime(2023, 1, 31)
 
 
 s = solaredge.Solaredge(api_key)
@@ -37,7 +36,8 @@ panels['Production'] /= 1000
 greenchoiche = GreenchoiceApi(username='ed.gordijn@gmail.com',
                               password='m1jnGreenchoice')
 
-df2 = greenchoiche.get_meterstanden(year=2022, product=1)
+###TODO automatiseer het jaar
+df2 = greenchoiche.get_meterstanden(year=2023, product=1)
 
 # Results per day
 df2 = df2.sort_values(by=['OpnameDatum'], ascending=True)
@@ -130,6 +130,7 @@ ax.legend(loc='lower right', bbox_to_anchor=(1, 1))
 fig.savefig(fname='fig/monitor_month.png', dpi=600)
 
 # Geschat jaarverbruik
+df3 = df3.dropna(subset=['Production'])
 dagen = len(df3.index)
 verwacht_jaarverbruik = (df3.levering.sum() + df3.zon.sum()) / dagen * 365 
 
