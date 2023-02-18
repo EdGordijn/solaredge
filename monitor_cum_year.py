@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 from datetime import datetime
+import json
 
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
@@ -10,10 +11,11 @@ import solaredge
 from ssdtools.meteo import Meteo
 
 #%% Solardata user info
-api_key = '0JZ8Q9LPBWIQ4KJHV8XJ2D1STNQA3MHH'
-site_id = '2752001'
+with open('/home/edgordijn/solaredge.json', 'r') as json_file:
+    userinfo = json.load(json_file)
 
-s = solaredge.Solaredge(api_key)
+
+s = solaredge.Solaredge(userinfo['api_key'])
 
 #%% Historische jaaropbrengst
 
@@ -22,7 +24,7 @@ s = solaredge.Solaredge(api_key)
 start_date = datetime(2022, 3, 3)
 end_date = datetime(2022, 12, 31)
 
-panels = s.get_energy_details_dataframe(site_id, 
+panels = s.get_energy_details_dataframe(userinfo['site_id'], 
                                         start_time=start_date,
                                         end_time=end_date)
 # Energy in kWh
@@ -174,7 +176,7 @@ year_end = today # - timedelta(days=1)
 #%% Get solardata
 
 # Energy this year
-sdata = s.get_energy(site_id,
+sdata = s.get_energy(userinfo['site_id'],
                      start_date=year_start.date(),
                      end_date=year_end.date(),
                      time_unit='DAY')

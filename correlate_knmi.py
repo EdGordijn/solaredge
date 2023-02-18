@@ -11,6 +11,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from datetime import datetime
+import json
 
 import solaredge
 from ssdtools.meteo import Meteo
@@ -36,12 +37,12 @@ def draw_text(ax,
 start_date = datetime(2022, 3, 3)
 end_date = datetime(2022, 12, 31)
 
-api_key = '0JZ8Q9LPBWIQ4KJHV8XJ2D1STNQA3MHH'
-site_id = '2752001'
 
-s = solaredge.Solaredge(api_key)
-
-panels = s.get_energy_details_dataframe(site_id, 
+with open('/home/edgordijn/solaredge.json', 'r') as json_file:
+    userinfo = json.load(json_file)
+    
+s = solaredge.Solaredge(userinfo['api_key'])
+panels = s.get_energy_details_dataframe(userinfo['site_id'], 
                                         start_time=start_date,
                                         end_time=end_date)
 # Energy in kWh

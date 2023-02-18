@@ -1,6 +1,7 @@
 import pandas as pd
 import solaredge
 from datetime import datetime, time, timedelta
+import json
 
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
@@ -8,6 +9,7 @@ import matplotlib.ticker as ticker
 
 #%% Periods
 today = datetime.now()
+
 ###TODO: fix for 1 jan
 if today.year == 2022:
     year_start = datetime(2022, 3, 1)
@@ -24,13 +26,13 @@ today_start = datetime.combine(today.date(), start_time)
 today_end = datetime.combine(today.date(), end_time)
 
 #%% Get solardata
-api_key = '0JZ8Q9LPBWIQ4KJHV8XJ2D1STNQA3MHH'
-site_id = '2752001'
-
-s = solaredge.Solaredge(api_key)
+with open('/home/edgordijn/solaredge.json', 'r') as json_file:
+    userinfo = json.load(json_file)
+    
+s = solaredge.Solaredge(userinfo['api_key'])
 
 # Energy this year
-sdata = s.get_energy(site_id,
+sdata = s.get_energy(userinfo['site_id'],
                      start_date=year_start.date(),
                      end_date=year_end.date(),
                      time_unit='DAY')
@@ -119,10 +121,7 @@ ax1.yaxis.set_major_locator(ylocator)
 ax1.legend(loc='lower right', bbox_to_anchor=(1, 1))
 
 #%% Subplot 2: current day
-
-s = solaredge.Solaredge(api_key)
-
-sdata = s.get_power(site_id,
+sdata = s.get_power(userinfo['site_id'],
                     start_time=today_start,
                     end_time=today_end)
 
@@ -132,7 +131,7 @@ df['time'] = pd.to_datetime(df['date'].str[11:]) # only time %H:%M:%S
 df['value'] /= 1000
 
 # Get total energy production
-energy = s.get_energy(site_id,
+energy = s.get_energy(userinfo['site_id'],
                       start_date=today.date(),
                       end_date=today.date(),
                       time_unit='DAY')['energy']['values'][0]['value']
@@ -145,7 +144,7 @@ ref = f'{xmax:%Y-%m-%d}' #'2022-05-15'
 ref_start = datetime.combine(datetime.strptime(ref, '%Y-%m-%d'), start_time)
 ref_end = datetime.combine(datetime.strptime(ref, '%Y-%m-%d'), end_time)
 
-sdata_ref = s.get_power(site_id,
+sdata_ref = s.get_power(userinfo['site_id'],
                         start_time=ref_start,
                         end_time=ref_end)
 
@@ -155,7 +154,7 @@ df2['time'] = pd.to_datetime(df['date'].str[11:]) # only time %H:%M:%S
 df2['value'] /= 1000
 
 # Get total energy production
-energy2 = s.get_energy(site_id,
+energy2 = s.get_energy(userinfo['site_id'],
                        start_date=ref,
                        end_date=ref,
                        time_unit='DAY')['energy']['values'][0]['value']

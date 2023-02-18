@@ -1,6 +1,7 @@
 import solaredge
 from datetime import datetime, time, timedelta
 from calendar import monthrange
+import json
 
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
@@ -9,9 +10,6 @@ from get_greenchoice_data import GreenchoiceApi
 
     
 #%% Get solardata
-api_key = '0JZ8Q9LPBWIQ4KJHV8XJ2D1STNQA3MHH'
-site_id = '2752001'
-
 today = datetime.now() #.date()
 start_date = today.replace(day=1)
 end_date = today
@@ -19,10 +17,11 @@ end_date = today
 # start_date = datetime(2023, 1, 1)
 # end_date = datetime(2023, 1, 31)
 
-
-s = solaredge.Solaredge(api_key)
-
-panels = s.get_energy_details_dataframe(site_id, 
+with open('/home/edgordijn/solaredge.json', 'r') as json_file:
+    userinfo = json.load(json_file)
+    
+s = solaredge.Solaredge(userinfo['api_key'])
+panels = s.get_energy_details_dataframe(userinfo['site_id'], 
                                         start_time=start_date,
                                         end_time=end_date)
 
@@ -33,8 +32,8 @@ panels.index = panels.index.date
 panels['Production'] /= 1000
 
 #%% Get meterstanden
-greenchoiche = GreenchoiceApi(username='ed.gordijn@gmail.com',
-                              password='m1jnGreenchoice')
+greenchoiche = GreenchoiceApi(username=userinfo['username'],
+                              password=userinfo['password'])
 
 ###TODO automatiseer het jaar
 df2 = greenchoiche.get_meterstanden(year=2023, product=1)
@@ -135,3 +134,11 @@ dagen = len(df3.index)
 verwacht_jaarverbruik = (df3.levering.sum() + df3.zon.sum()) / dagen * 365 
 
 print(f'Het verwacht jaarverbruik na {dagen} dagen: {verwacht_jaarverbruik:.0f}')
+
+
+#%% Pie chart
+
+pie_data = df3[['levering','teruglevering', 'zon']].sum(axis=0)
+pie_data['teruglevering'] *= -1
+
+pie_data.plot.pie()
