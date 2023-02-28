@@ -14,12 +14,9 @@ from ssdtools.meteo import Meteo
 with open('/home/edgordijn/solaredge.json', 'r') as json_file:
     userinfo = json.load(json_file)
 
-
 s = solaredge.Solaredge(userinfo['api_key'])
 
-#%% Historische jaaropbrengst
-
-#%% Correlate KNMI data with solarpanel production
+#%% Historic panel production and meteo data
 
 start_date = datetime(2022, 3, 3)
 end_date = datetime(2022, 12, 31)
@@ -30,6 +27,7 @@ panels = s.get_energy_details_dataframe(userinfo['site_id'],
 # Energy in kWh
 panels['Production'] /= 1000
 
+
 # Data van het KNMI
 meteo = Meteo.from_knmi(start=start_date.strftime('%Y%m%d'), 
                         end=end_date.strftime('%Y%m%d'),
@@ -38,6 +36,8 @@ meteo = Meteo.from_knmi(start=start_date.strftime('%Y%m%d'),
 
 # Calculate daily radiation, global radiation (in J/cm2)
 straling = meteo.data.groupby(['YYYYMMDD'])['Q'].sum()
+
+#%% Correlate KNMI data with solarpanel production
 
 # Lineair fit
 X = np.vstack([straling, np.zeros(len(straling))]).T
@@ -159,45 +159,36 @@ stats_per_dag.plot(y='mean',
                    linewidth=0.8,
                    ax=ax)
 
-#%% Periods
+#%% Get solardata
 today = datetime.now()
 ###TODO: fix for 1 jan
 if today.year == 2022:
     year_start = datetime(2022, 3, 1)
 else:
     year_start = datetime(today.year, 1, 1)   
-year_end = today # - timedelta(days=1)
+year_end = today
 
 # Handmatige invoer
 # year_start = datetime(2022, 3, 3)
 # year_end = datetime(2022, 12, 31)
 # today = year_end
 
-#%% Get solardata
-
-# Energy this year
-sdata = s.get_energy(userinfo['site_id'],
-                     start_date=year_start.date(),
-                     end_date=year_end.date(),
-                     time_unit='DAY')
-
-# Convert to dataframe
-df_energy = pd.DataFrame(sdata['energy']['values'])
-df_energy['time'] = pd.to_datetime(df_energy['date'])
-df_energy['value'] /= 1000
+df_energy = s.get_energy_details_dataframe(userinfo['site_id'], 
+                                           start_time=year_start,
+                                           end_time=year_end)
+# Energy in kWh
+df_energy['Production'] /= 1000
 
 # Cumulative value
-df_energy['value'] = df_energy['value'].cumsum()
+df_energy['Cumulative'] = df_energy['Production'].cumsum()
 
 # Total energy
-energy_ytd = df_energy['value'].max()
-                 
+energy_ytd = df_energy['Production'].sum()
 
 #%% plot
 
-ax.plot('time',
-        'value',
-        data=df_energy,
+ax.plot(df_energy.index,
+        df_energy['Cumulative'],
         color='#6461A0',
         label=f'{today.year} {energy_ytd:6.1f} kWh'.replace(' ', u'\u2007'))
 
@@ -214,15 +205,13 @@ for p in range(20, 200, 20):
     t = target/100 * p
 
     if t <= energy_ytd:  
-        idx = df_energy['value'].where(df_energy['value'] > t).first_valid_index()
+        idx = df_energy['Cumulative'].where(df_energy['Cumulative'] > t).first_valid_index()
+        yp = df_energy.loc[idx, 'Cumulative']
         
-        xp = df_energy.loc[idx, 'time']
-        yp = df_energy.loc[idx, 'value']
-        
-        ax.plot(xp, yp, marker='o', color='#B68CB8')
+        ax.plot(idx, yp, marker='o', color='#B68CB8')
 
         ax.annotate(f'{p}%',
-                    xy=(xp, yp),
+                    xy=(idx, yp),
                     xytext=(-10, 0), textcoords='offset points',
                     color='#B68CB8',
                     ha='right',
@@ -230,8 +219,8 @@ for p in range(20, 200, 20):
 
 
 # Last datapoint
-xmax = df_energy.loc[df_energy['value'].idxmax(), 'time']
-ymax = df_energy['value'].max()
+xmax = df_energy['Cumulative'].idxmax()
+ymax = df_energy['Cumulative'].max()
 
 ax.plot(xmax, ymax, marker='o', color='#B68CB8')
 ax.annotate(f'{xmax:%Y-%m-%d - {100*ymax/target:0.0f}%}',
@@ -254,7 +243,7 @@ ax.set_xlim(datetime(today.year, 1, 1),
             datetime(today.year, 12, 31))
 
 # Set ylim
-ax.set_ylim(0)
+ax.set_ylim(0, 4000)
 
 # Set ytick labels
 ylocator = ticker.MultipleLocator(200)
