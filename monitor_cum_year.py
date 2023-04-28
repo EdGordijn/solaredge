@@ -14,9 +14,12 @@ from ssdtools.meteo import Meteo
 with open('/home/edgordijn/solaredge.json', 'r') as json_file:
     userinfo = json.load(json_file)
 
+
 s = solaredge.Solaredge(userinfo['api_key'])
 
-#%% Historic panel production and meteo data
+#%% Historische jaaropbrengst
+
+#%% Correlate KNMI data with solarpanel production
 
 start_date = datetime(2022, 3, 3)
 end_date = datetime(2022, 12, 31)
@@ -27,7 +30,6 @@ panels = s.get_energy_details_dataframe(userinfo['site_id'],
 # Energy in kWh
 panels['Production'] /= 1000
 
-
 # Data van het KNMI
 meteo = Meteo.from_knmi(start=start_date.strftime('%Y%m%d'), 
                         end=end_date.strftime('%Y%m%d'),
@@ -36,8 +38,6 @@ meteo = Meteo.from_knmi(start=start_date.strftime('%Y%m%d'),
 
 # Calculate daily radiation, global radiation (in J/cm2)
 straling = meteo.data.groupby(['YYYYMMDD'])['Q'].sum()
-
-#%% Correlate KNMI data with solarpanel production
 
 # Lineair fit
 X = np.vstack([straling, np.zeros(len(straling))]).T
@@ -144,7 +144,7 @@ stats_per_dag.index = pd.to_datetime({'year': stats_per_dag['jaar'],
 plt.style.use('myplotstyle')
 
 fig, ax = plt.subplots()
-fig.set_size_inches(10, 6)
+fig.set_size_inches(10, 5)
    
 
 #%% Plot stats
@@ -159,38 +159,47 @@ stats_per_dag.plot(y='mean',
                    linewidth=0.8,
                    ax=ax)
 
-#%% Get solardata
+#%% Periods
 today = datetime.now()
 ###TODO: fix for 1 jan
 if today.year == 2022:
-    year_start = datetime(2022, 3, 1)
+    start_date = datetime(2022, 3, 1)
 else:
-    year_start = datetime(today.year, 1, 1)   
-year_end = today
+    start_date = datetime(today.year, 1, 1)   
+end_date = today # - timedelta(days=1)
 
 # Handmatige invoer
 # year_start = datetime(2022, 3, 3)
 # year_end = datetime(2022, 12, 31)
 # today = year_end
 
+#%% Get solardata
+
+# Energy this year
 df_energy = s.get_energy_details_dataframe(userinfo['site_id'], 
-                                           start_time=year_start,
-                                           end_time=year_end)
+                                        start_time=start_date,
+                                        end_time=end_date,
+                                        time_unit='DAY')
 # Energy in kWh
 df_energy['Production'] /= 1000
 
+df_energy['time'] = df_energy.index.date
+
 # Cumulative value
-df_energy['Cumulative'] = df_energy['Production'].cumsum()
+df_energy['cum_production'] = df_energy['Production'].cumsum()
 
 # Total energy
 energy_ytd = df_energy['Production'].sum()
 
+                 
+
 #%% plot
 
-ax.plot(df_energy.index,
-        df_energy['Cumulative'],
+ax.plot('time',
+        'cum_production',
+        data=df_energy,
         color='#6461A0',
-        label=f'{today.year} {energy_ytd:6.1f} kWh'.replace(' ', u'\u2007'))
+        label=f'{today.year} {energy_ytd:6.0f} kWh'.replace(' ', u'\u2007'))
 
 # Markerline for the target - proposal SolarEnergy
 target = 2932
@@ -205,13 +214,15 @@ for p in range(20, 200, 20):
     t = target/100 * p
 
     if t <= energy_ytd:  
-        idx = df_energy['Cumulative'].where(df_energy['Cumulative'] > t).first_valid_index()
-        yp = df_energy.loc[idx, 'Cumulative']
+        idx = df_energy['cum_production'].where(df_energy['cum_production'] > t).first_valid_index()
         
-        ax.plot(idx, yp, marker='o', color='#B68CB8')
+        xp = df_energy.loc[idx, 'time']
+        yp = df_energy.loc[idx, 'cum_production']
+        
+        ax.plot(xp, yp, marker='o', color='#B68CB8')
 
         ax.annotate(f'{p}%',
-                    xy=(idx, yp),
+                    xy=(xp, yp),
                     xytext=(-10, 0), textcoords='offset points',
                     color='#B68CB8',
                     ha='right',
@@ -219,8 +230,8 @@ for p in range(20, 200, 20):
 
 
 # Last datapoint
-xmax = df_energy['Cumulative'].idxmax()
-ymax = df_energy['Cumulative'].max()
+xmax = df_energy.loc[df_energy['cum_production'].idxmax(), 'time']
+ymax = df_energy['cum_production'].max()
 
 ax.plot(xmax, ymax, marker='o', color='#B68CB8')
 ax.annotate(f'{xmax:%Y-%m-%d - {100*ymax/target:0.0f}%}',
@@ -243,7 +254,7 @@ ax.set_xlim(datetime(today.year, 1, 1),
             datetime(today.year, 12, 31))
 
 # Set ylim
-ax.set_ylim(0, 4000)
+ax.set_ylim(0)
 
 # Set ytick labels
 ylocator = ticker.MultipleLocator(200)
@@ -252,5 +263,55 @@ ax.yaxis.set_major_locator(ylocator)
 # legend
 ax.legend(loc='lower right', bbox_to_anchor=(1, 1))
 
-#%% Save figure
+# Save figure
+fig.tight_layout()
 fig.savefig(fname='fig/monitor_cum_year.png', dpi=600) 
+
+#%% Box plot
+
+# Monthly sums
+straling_per_maand = straling.groupby([straling.index.month, straling.index.year]).sum()
+straling_per_maand.index.names = ['maand', 'jaar']
+straling_per_maand = pd.DataFrame(straling_per_maand)
+
+panels_per_maand = df_energy.groupby(df_energy.index.month)['Production'].sum()
+# panels_per_maand = panels_per_maand.reindex(range(1, 13))
+
+fig, ax = plt.subplots()
+fig.set_size_inches(10, 4)
+
+ax.bar(panels_per_maand.index,
+       panels_per_maand,
+       label=f'{panels_per_maand.sum():.0f} kWh realisatie',
+       width=0.3,
+       color='orange')
+
+straling_per_maand.groupby(level='maand').boxplot(column='Q', subplots=False, ax=ax)
+
+# data labels
+means = straling_per_maand.groupby(level='maand')['Q'].median()
+for index, mean in enumerate(means):
+    ax.annotate(f'{mean:.0f}',
+                xy=(index+1, mean), 
+                xytext=(15, 0), textcoords='offset points',
+                va='center',
+                fontsize=6, color='green')
+for index, productie in panels_per_maand.items():
+    ax.annotate(f'{productie:.0f}',
+                xy=(index, 0), 
+                xytext=(0, 5), textcoords='offset points',
+                ha='center',
+                va='center',
+                fontsize=6, color='white')
+    
+# Set axis labels
+ax.set_ylabel('opgewekt [kWh]')
+ax.set_xticks(ax.get_xticks(),
+              labels=['januari', 'februari', 'maart', 'april', 'mei', 'juni', 'juli', 'augustus', 'september', 'oktober', 'november', 'december'])
+
+# legend
+ax.legend(loc='lower right', bbox_to_anchor=(1, 1))
+
+# save fig
+fig.tight_layout()
+ax.figure.savefig('fig/boxplot.png', dpi=600)
