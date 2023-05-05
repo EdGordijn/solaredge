@@ -14,7 +14,7 @@ today = datetime.now()
 if today.year == 2022:
     year_start = datetime(2022, 3, 1)
 else:
-    year_start = datetime(today.year, 1, 1)   
+    year_start = datetime(today.year, 1, 1)
 year_end = today - timedelta(days=1)
 
 # For today the time period to monitor
@@ -28,7 +28,7 @@ today_end = datetime.combine(today.date(), end_time)
 #%% Get solardata
 with open('/home/edgordijn/solaredge.json', 'r') as json_file:
     userinfo = json.load(json_file)
-    
+
 s = solaredge.Solaredge(userinfo['api_key'])
 
 # Energy this year
@@ -55,7 +55,7 @@ fig.set_size_inches(10, 6)
 # set the spacing between subplots
 plt.subplots_adjust(hspace=0.3)
 
-# fig.suptitle('Maandopbrengst', fontsize=16)                     
+# fig.suptitle('Maandopbrengst', fontsize=16)
 
 #%% subplot 1: previous period
 
@@ -108,7 +108,7 @@ ax1.set_ylabel('energy in kWh')
 ax1.xaxis.set_minor_locator(mdates.MonthLocator(bymonthday=16))
 ax1.xaxis.set_major_formatter(ticker.NullFormatter())
 ax1.xaxis.set_minor_formatter(mdates.DateFormatter('%b'))
-    
+
 # Set xlim
 ax1.set_xlim(datetime(today.year, 1, 1),
              datetime(today.year, 12, 31))
@@ -127,7 +127,7 @@ sdata = s.get_power(userinfo['site_id'],
 
 # Convert to dataframe
 df = pd.DataFrame(sdata['power']['values'])
-df['time'] = pd.to_datetime(df['date'].str[11:]) # only time %H:%M:%S
+df['time'] = pd.to_datetime(df['date'])
 df['value'] /= 1000
 
 # Get total energy production
@@ -150,7 +150,7 @@ sdata_ref = s.get_power(userinfo['site_id'],
 
 # Convert to dataframe
 df2 = pd.DataFrame(sdata_ref['power']['values'])
-df2['time'] = pd.to_datetime(df['date'].str[11:]) # only time %H:%M:%S
+df2['time'] = pd.to_datetime(today.strftime('%Y-%m-%d ') + df2['date'].str[11:])
 df2['value'] /= 1000
 
 # Get total energy production
@@ -179,7 +179,7 @@ ax2.plot('time',
 
 
 # Find maximum value
-xmax = df.loc[df['value'].idxmax(), 'time'] 
+xmax = df.loc[df['value'].idxmax(), 'time']
 ymax = df['value'].max()
 
 # Markerlines
@@ -203,7 +203,7 @@ ax2.annotate(f'max {ymax:.1f} kW',
 
 # Set yaxis label
 ax2.set_ylabel('power in kW')
-  
+
 # Set xtick labels to appear every hour
 xlocator = mdates.HourLocator()
 ax2.xaxis.set_major_locator(xlocator)
@@ -219,4 +219,4 @@ ax2.set_xlim(today_start, today_end)
 ax2.legend(loc='lower right', bbox_to_anchor=(1, 1))
 
 #%% Save figure
-fig.savefig(fname='fig/monitor_new.png', dpi=600) 
+fig.savefig(fname='fig/monitor_new.png', dpi=600)
