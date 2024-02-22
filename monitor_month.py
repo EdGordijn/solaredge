@@ -8,20 +8,20 @@ import matplotlib.dates as mdates
 
 from get_greenchoice_data import GreenchoiceApi
 
-    
+
 #%% Get solardata
 today = datetime.now() #.date()
 start_date = today.replace(day=1)
 end_date = today
 
-# start_date = datetime(2023, 1, 1)
-# end_date = datetime(2023, 1, 31)
+# start_date = datetime(2024, 1, 1)
+# end_date = datetime(2024, 1, 31)
 
 with open('/home/edgordijn/solaredge.json', 'r') as json_file:
     userinfo = json.load(json_file)
-    
+
 s = solaredge.Solaredge(userinfo['api_key'])
-panels = s.get_energy_details_dataframe(userinfo['site_id'], 
+panels = s.get_energy_details_dataframe(userinfo['site_id'],
                                         start_time=start_date,
                                         end_time=end_date)
 
@@ -36,7 +36,7 @@ greenchoiche = GreenchoiceApi(username=userinfo['username'],
                               password=userinfo['password'])
 
 ###TODO automatiseer het jaar
-df2 = greenchoiche.get_meterstanden(year=2023, product=1)
+df2 = greenchoiche.get_meterstanden(year=2024, product=1)
 
 # Results per day
 df2 = df2.sort_values(by=['OpnameDatum'], ascending=True)
@@ -46,7 +46,7 @@ df2['teruglevering'] = -(df2['TerugleveringNormaal'] + df2['TerugleveringDal']).
 
 #%% Merge data
 df3 = df2.join(panels)
-               
+
 df3['zon'] = df3['Production'] - df3['teruglevering']
 
 #%% plot
@@ -58,7 +58,7 @@ fig.set_size_inches(10, 4)
 
 # Colors, mark current day
 # df['colors'] = '#B68CB8'
-# df.loc[df.index[-1], 'colors'] = '#6461A0'                        
+# df.loc[df.index[-1], 'colors'] = '#6461A0'
 
 df3['teruglevering'] *= -1
 
@@ -106,7 +106,7 @@ ax.xaxis.set_major_locator(xlocator)
 # Format xtick labels as daynumbers
 formatter = mdates.DateFormatter('%a\n%d')
 ax.xaxis.set_major_formatter(formatter)
-    
+
 # Set xlim
 # start_date = datetime(start_date.year, start_date.month, start_date.day, 0, 0)
 start_date = datetime.combine(start_date, time(0, 0))
@@ -131,14 +131,14 @@ fig.savefig(fname='fig/monitor_month.png', dpi=600)
 # Geschat jaarverbruik
 df3 = df3.dropna(subset=['Production'])
 dagen = len(df3.index)
-verwacht_jaarverbruik = (df3.levering.sum() + df3.zon.sum()) / dagen * 365 
+verwacht_jaarverbruik = (df3.levering.sum() + df3.zon.sum()) / dagen * 365
 
 print(f'Het verwacht jaarverbruik na {dagen} dagen: {verwacht_jaarverbruik:.0f}')
 
 
 #%% Pie chart
 
-pie_data = df3[['levering','teruglevering', 'zon']].sum(axis=0)
-pie_data['teruglevering'] *= -1
+# pie_data = df3[['levering','teruglevering', 'zon']].sum(axis=0)
+# pie_data['teruglevering'] *= -1
 
-pie_data.plot.pie()
+# pie_data.plot.pie()

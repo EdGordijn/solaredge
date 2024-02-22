@@ -134,7 +134,7 @@ stats_per_dag = stats_per_dag.join(panels_per_dag)
 stats_per_dag = stats_per_dag.reset_index()
 
 ###TODO automatisch bepalen
-stats_per_dag['jaar'] = 2023
+stats_per_dag['jaar'] = 2024
 
 stats_per_dag.index = pd.to_datetime({'year': stats_per_dag['jaar'],
                                       'month': stats_per_dag['maand'],
@@ -169,9 +169,9 @@ else:
 end_date = today # - timedelta(days=1)
 
 # Handmatige invoer
-# year_start = datetime(2022, 3, 3)
-# year_end = datetime(2022, 12, 31)
-# today = year_end
+# start_date = datetime(2023, 1, 1)
+# end_date = datetime(2023, 12, 31)
+# today = end_date
 
 #%% Get solardata
 
